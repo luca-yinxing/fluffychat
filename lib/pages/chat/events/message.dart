@@ -99,11 +99,6 @@ class Message extends StatelessWidget {
       bottomLeft: const Radius.circular(AppConfig.borderRadius),
       bottomRight: const Radius.circular(AppConfig.borderRadius),
     );
-    final noBubble = {
-      MessageTypes.Video,
-      MessageTypes.Image,
-      MessageTypes.Sticker,
-    }.contains(event.messageType);
 
     if (ownMessage) {
       color = displayEvent.status.isError
@@ -145,33 +140,11 @@ class Message extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!sameSender)
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0, bottom: 4),
-                child: ownMessage || event.room.isDirectChat
-                    ? const SizedBox(height: 12)
-                    : FutureBuilder<User?>(
-                        future: event.fetchSenderUser(),
-                        builder: (context, snapshot) {
-                          final displayname =
-                              snapshot.data?.calcDisplayname() ??
-                                  event.senderFromMemoryOrFallback
-                                      .calcDisplayname();
-                          return Text(
-                            displayname,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: displayname.color,
-                            ),
-                          );
-                        }),
-              ),
             Container(
               alignment: alignment,
               padding: const EdgeInsets.only(left: 8),
               child: Material(
-                color: noBubble ? Colors.transparent : color,
+                color: color,
                 elevation: event.type == EventTypes.Sticker ? 0 : 4,
                 shadowColor:
                     Theme.of(context).colorScheme.onBackground.withAlpha(64),
@@ -189,9 +162,11 @@ class Message extends StatelessWidget {
                       borderRadius:
                           BorderRadius.circular(AppConfig.borderRadius),
                     ),
-                    padding: noBubble
-                        ? EdgeInsets.zero
-                        : EdgeInsets.all(16 * AppConfig.bubbleSizeFactor),
+                    padding: EdgeInsets.fromLTRB(
+                        16 * AppConfig.bubbleSizeFactor,
+                        8 * AppConfig.bubbleSizeFactor,
+                        16 * AppConfig.bubbleSizeFactor,
+                        16 * AppConfig.bubbleSizeFactor),
                     constraints: const BoxConstraints(
                         maxWidth: FluffyThemes.columnWidth * 1.5),
                     child: Stack(
@@ -200,6 +175,30 @@ class Message extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
+                            if (!sameSender &&
+                                !ownMessage &&
+                                !event.room.isDirectChat)
+                              FutureBuilder<User?>(
+                                  future: event.fetchSenderUser(),
+                                  builder: (context, snapshot) {
+                                    final displayname =
+                                        snapshot.data?.calcDisplayname() ??
+                                            event.senderFromMemoryOrFallback
+                                                .calcDisplayname();
+                                    final nameColor =
+                                        Theme.of(context).brightness ==
+                                                Brightness.light
+                                            ? displayname.darkColor
+                                            : displayname.lightColor;
+                                    return Text(
+                                      displayname,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: nameColor,
+                                      ),
+                                    );
+                                  }),
                             if (event.relationshipType ==
                                 RelationshipTypes.reply)
                               FutureBuilder<Event?>(

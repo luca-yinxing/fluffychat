@@ -44,16 +44,22 @@ class Avatar extends StatelessWidget {
     final noPic = mxContent == null ||
         mxContent.toString().isEmpty ||
         mxContent.toString() == 'null';
+    final nopicColorText = Theme.of(context).brightness == Brightness.light
+        ? Colors.white
+        : Colors.black;
     final textWidget = Center(
       child: Text(
         fallbackLetters,
         style: TextStyle(
-          color: noPic ? Colors.white : null,
-          fontSize: fontSize,
-        ),
+            color: noPic ? nopicColorText : null,
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold),
       ),
     );
     final borderRadius = BorderRadius.circular(size / 2);
+    final nopicColor = Theme.of(context).brightness == Brightness.light
+        ? name?.darkColor
+        : name?.lightColor;
     final container = Container(
       decoration: BoxDecoration(
         border: Border.all(color: Theme.of(context).dividerColor),
@@ -64,8 +70,7 @@ class Avatar extends StatelessWidget {
         child: Container(
           width: size,
           height: size,
-          color:
-              noPic ? name?.lightColor : Theme.of(context).secondaryHeaderColor,
+          color: noPic ? nopicColor : Theme.of(context).secondaryHeaderColor,
           child: noPic
               ? textWidget
               : CachedNetworkImage(
